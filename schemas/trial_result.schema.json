@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "governed-engineering-skills/trial_result.schema.json",
+  "title": "Portability trial result",
+
+  "description": "TWO SECTIONS, TWO AUTHORS. The builder authors everything outside `adjudication`; the adjudicator authors `adjudication`. The first version of this schema marked outcome, counterfactual_answer, adjudicator and claim_licensed as required of a single flat record -- exactly the four fields the execution protocol forbids the builder to author. A record produced by the party who runs the trial therefore could not validate, and the only ways out were for the builder to author them (violating the protocol) or to ship an invalid record. Trial A shipped the invalid record and reported the contradiction as finding M2. `record_status` now decides which sections must be present, so an un-adjudicated record is VALID and visibly incomplete rather than invalid and silently so.",
+
+  "type": "object",
+  "required": ["record_status", "trial_id", "pre_registration_digest", "executed_at", "head_sha", "findings"],
+  "additionalProperties": true,
+
+  "properties": {
+    "record_status": {
+      "enum": ["AWAITING_ADJUDICATION", "ADJUDICATED"],
+      "description": "AWAITING_ADJUDICATION is a complete, valid builder record. It is not a draft."
+    },
+
+    "trial_id": {"type": "string"},
+    "pre_registration_digest": {
+      "type": "string",
+      "description": "Binds this result to the frozen prediction, so neither can be edited to fit the other."
+    },
+    "executed_at": {"type": "string", "format": "date"},
+    "baseline_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+
+    "methodology": {
+      "type": "object",
+      "description": "The instrument, pinned. A trial whose instrument moved underneath it measured nothing.",
+      "required": ["core_commit", "artifact_digest_sha256", "unchanged_during_trial"],
+      "properties": {
+        "core_commit": {"type": "string"},
+        "artifact_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "bundle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "unchanged_during_trial": {"type": "boolean"}
+      }
+    },
+
+    "review_mode": {"type": "string"},
+    "review_mode_is_not": {"type": "array", "items": {"type": "string"}},
+
+    "ordinary_baseline_before_methodology": {
+      "type": "object",
+      "description": "What the repository's own gates said BEFORE the methodology ran. The counterfactual turns on this, so it is a builder observation, recorded before any judgement is attached to it."
+    },
+
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "lens", "attribution", "description", "evidence", "material"],
+        "properties": {
+          "id": {"type": "string"},
+          "lens": {"type": "string"},
+          "attribution": {
+            "enum": ["PRE_REGISTERED", "EMERGENT"],
+            "description": "EMERGENT findings carry less weight: retrospective attribution is unfalsifiable."
+          },
+          "status": {"enum": ["demonstrated", "suspected"]},
+          "description": {"type": "string"},
+          "evidence": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Mechanical only: test output, revisions, gate results. Builder prose is diagnostic information, not evidence."
+          },
+          "already_demanded_by_issue": {},
+          "material": {"type": "boolean"},
+          "closed": {},
+          "residual": {"type": "string"},
+          "left_open_by_decision": {"type": "boolean"}
+        }
+      }
+    },
+
+    "skills_invoked": {"type": "object"},
+    "revert_controls": {"type": "array", "items": {"type": "object"}},
+    "false_positives": {"type": "array", "items": {"type": "string"}},
+
+    "forge_specific_assumptions_encountered": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Any assumption that did not map to this codebase. A non-empty list bears directly on P-NOT-PORTABLE and on publication gate condition 3."
+    },
+
+    "methodology_defects_found_by_this_trial": {
+      "type": "array",
+      "description": "Defects in the INSTRUMENT, found by using it. Recorded, never repaired mid-trial: a core that changes during the trial invalidates the measurement. They are fixed in a successor revision.",
+      "items": {
+        "type": "object",
+        "required": ["id", "artifact", "description", "repaired"],
+        "properties": {
+          "id": {"type": "string"},
+          "artifact": {"type": "string"},
+          "description": {"type": "string"},
+          "severity": {"type": "string"},
+          "repaired": {"type": "boolean"},
+          "reason_not_repaired": {"type": "string"}
+        }
+      }
+    },
+
+    "builder_errors": {
+      "type": "array",
+      "description": "Mistakes by the party running the trial, recorded as such rather than filed as environment footnotes. A trial that only records the instrument's faults is measuring one of the two things that can go wrong.",
+      "items": {
+        "type": "object",
+        "required": ["id", "description"],
+        "properties": {"id": {"type": "string"}, "description": {"type": "string"}}
+      }
+    },
+
+    "disclosed_limits": {"type": "array", "items": {"type": "string"}},
+
+    "adjudication": {
+      "type": "object",
+      "description": "AUTHORED BY THE ADJUDICATOR ONLY. The builder must leave this absent. `authored_by` must not name the builder; JSON Schema cannot compare it against the builder field, so that constraint is enforced by protocol and is checkable by a reader.",
+      "required": ["outcome", "authored_by", "adjudicator", "counterfactual_answer", "claim_licensed"],
+      "properties": {
+        "outcome": {
+          "enum": ["P-VALIDATED", "P-USEFUL-BUT-NOT-VALIDATING", "P-NOT-PORTABLE"],
+          "description": "The middle value is NOT a pass. Do not convert it into one."
+        },
+        "authored_by": {"type": "string"},
+        "adjudicator": {"type": "string"},
+        "counterfactual_answer": {
+          "type": "string",
+          "description": "Must not be authored by the builder: the party whose method is on trial does not score the counterfactual."
+        },
+        "claim_licensed": {
+          "type": "string",
+          "description": "The exact sentence this trial licenses. Narrower than the outcome label."
+        },
+        "explicitly_not_licensed": {"type": "array", "items": {"type": "string"}},
+        "trial_b": {"type": "string"}
+      }
+    },
+
+    "protocol_amendments_used": {"type": "boolean", "default": false},
+    "merged": {"type": "boolean"},
+    "pushed": {"type": "boolean"},
+    "published": {"type": "boolean"}
+  },
+
+  "allOf": [
+    {
+      "if": {"properties": {"record_status": {"const": "ADJUDICATED"}}, "required": ["record_status"]},
+      "then": {"required": ["adjudication"]}
+    },
+    {
+      "if": {"properties": {"record_status": {"const": "AWAITING_ADJUDICATION"}}, "required": ["record_status"]},
+      "then": {
+        "not": {"required": ["adjudication"]},
+        "$comment": "An un-adjudicated record must not carry an adjudication section at all. A builder who filled it in and left the status alone would otherwise pass."
+      }
+    }
+  ]
+}

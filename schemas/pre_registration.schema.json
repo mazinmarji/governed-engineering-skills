@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "governed-engineering-skills/pre_registration.schema.json",
+  "title": "Portability trial pre-registration",
+  "description": "Written and FROZEN before the methodology is applied. A record written alongside the work is not a pre-registration: the counterfactual must be fixed before the result is known, or it gets reconstructed from the outcome, which is substitution S4 at the level of the experiment.",
+  "type": "object",
+  "required": [
+    "trial_id", "frozen_at", "repository", "baseline_sha", "change_under_test",
+    "purpose", "roles", "ordinary_baseline", "counterfactual_prediction",
+    "lenses_predicted", "skills_predicted", "expected_difficulties",
+    "success_criterion", "failure_criterion", "no_value_criterion",
+    "stop_condition", "publication_consequence"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "trial_id":     {"type": "string"},
+    "frozen_at":    {"type": "string", "format": "date"},
+    "repository":   {"type": "string"},
+    "baseline_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+
+    "change_under_test": {
+      "type": "object",
+      "required": ["reference", "summary", "explicitly_out_of_scope"],
+      "properties": {
+        "reference": {"type": "string"},
+        "summary":   {"type": "string"},
+        "explicitly_out_of_scope": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+
+    "purpose": {
+      "type": "object",
+      "description": "What a pass licenses, and what it does not. Stated before the result so the claim cannot widen to fit it (EC-16).",
+      "required": ["question", "licenses", "does_not_license"],
+      "properties": {
+        "question":         {"type": "string"},
+        "licenses":         {"type": "string"},
+        "does_not_license": {"type": "string"}
+      }
+    },
+
+    "roles": {
+      "type": "object",
+      "description": "The builder must not be the sole adjudicator. Provenance is declared, not assumed.",
+      "required": ["builder", "adjudicator", "human_sponsor"],
+      "properties": {
+        "builder":            {"type": "string"},
+        "evidence_producers": {"type": "array", "items": {"type": "string"}},
+        "adjudicator":        {"type": "string"},
+        "human_sponsor":      {"type": "string"}
+      }
+    },
+
+    "ordinary_baseline": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "The competent workflow absent this methodology. Performing these steps is not evidence of methodology value."
+    },
+
+    "counterfactual_prediction": {
+      "type": "object",
+      "required": ["baseline_would_catch", "baseline_unlikely_to_challenge"],
+      "properties": {
+        "baseline_would_catch":           {"type": "array", "items": {"type": "string"}},
+        "baseline_unlikely_to_challenge": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+
+    "lenses_predicted": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["lens", "relevance", "question"],
+        "properties": {
+          "lens":      {"enum": ["S1", "S2", "S3", "S4", "S5", "S6", "S7"]},
+          "relevance": {"enum": ["primary", "relevant", "not_expected"]},
+          "question":  {"type": "string"}
+        }
+      }
+    },
+
+    "skills_predicted": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["skill", "role"],
+        "properties": {
+          "skill":     {"enum": ["SK-1", "SK-2", "SK-3", "SK-4", "SK-5", "SK-6", "SK-7"]},
+          "role":      {"enum": ["primary_under_test", "conditional", "supporting", "not_a_subject"]},
+          "condition": {"type": "string"}
+        }
+      }
+    },
+
+    "expected_difficulties": {"type": "array", "items": {"type": "string"}},
+    "success_criterion":     {"type": "array", "items": {"type": "string"}},
+    "failure_criterion":     {"type": "array", "items": {"type": "string"}},
+
+    "no_value_criterion": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "THE DECISIVE FIELD. What result would convince us the methodology added no material value here? Without it the trial cannot fail."
+    },
+
+    "stop_condition":          {"type": "array", "items": {"type": "string"}},
+    "publication_consequence": {"type": "string"},
+
+    "amendments": {
+      "type": "array",
+      "description": "Any change after execution begins is recorded here and MAY NOT be used retroactively to improve the result.",
+      "items": {
+        "type": "object",
+        "required": ["at", "field", "was", "now", "why"],
+        "properties": {
+          "at":    {"type": "string"},
+          "field": {"type": "string"},
+          "was":   {"type": "string"},
+          "now":   {"type": "string"},
+          "why":   {"type": "string"}
+        }
+      }
+    }
+  }
+}
